@@ -55,6 +55,8 @@ public class PublicPrivateInstanceCount implements Process {
             }
 
             String type = "PRIVATE";
+            String surveyId = "";
+            String surveyName = "";
             Entity sg = sgs.get(surveyGroupId);
             if (sg != null) {
                 String pl = (String) sg.getProperty("privacyLevel");
@@ -63,6 +65,8 @@ public class PublicPrivateInstanceCount implements Process {
                 } else {
                     type = pl.toUpperCase();
                 }
+                surveyId = Long.toString(sg.getKey().getId());
+                surveyName = (String) sg.getProperty("name");
             } else {
                 type = getPrivacyLevelFromSurvey(s);
             }
@@ -74,9 +78,14 @@ public class PublicPrivateInstanceCount implements Process {
                     FetchOptions.Builder.withChunkSize(chunkSize))) {
                 count++;
             }
-            String out = String.format("%s,%s,%s,%s,%s", appId, s.getKey().getId(),
+            String out = String.format("%s,%s,%s,%s,%s,%s,%s",
+                    appId,
+                    surveyId,
+                    surveyName,
+                    s.getKey().getId(),
                     s.getProperty("name"),
-                    type, count);
+                    type,
+                    count);
             System.out.println(out);
         }
 
