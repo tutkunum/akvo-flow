@@ -36,9 +36,12 @@ import com.google.appengine.api.datastore.Query;
  */
 public class CheckSurveyStructure implements Process {
 
-    private int orphanSurveys = 0, orphanGroups = 0, orphanQuestions = 0, unreachableQuestions = 0, orphanOptions = 0;
+    private int orphanSurveyGroups = 0, orphanSurveys = 0, orphanGroups = 0;
+    private int orphanQuestions = 0, unreachableQuestions = 0, orphanOptions = 0;
     private int goodQuestions = 0, goodOptions = 0;
+    private int ancestorProblems = 0;
     private Map<Long, String> surveys = new HashMap<>();
+    private Map<Long, String> surveyGroupNames = new HashMap<>();
     private Map<Long, Long> qToSurvey = new HashMap<>();
     private Map<Long, Long> qgToSurvey = new HashMap<>();
 
@@ -59,16 +62,88 @@ public class CheckSurveyStructure implements Process {
             }
         }
 
+        processSurveyGroups(ds);
         processSurveys(ds);
         processGroups(ds);
         processQuestions(ds);
         processOptions(ds);
 
+        System.out.printf("#SurveysGroups:   %5d good, %4d groupless\n", surveyGroupNames.size(), orphanSurveyGroups);
         System.out.printf("#Surveys:         %5d good, %4d groupless\n", surveys.size(), orphanSurveys);
         System.out.printf("#QuestionGroups:  %5d good, %4d surveyless\n", qgToSurvey.size(), orphanGroups);
         System.out.printf("#Questions:       %5d good, %4d groupless, %4d unreachable\n", goodQuestions, orphanQuestions, unreachableQuestions);
-        System.out.printf("#QuestionOptions: %5d good, %4d questionless\n", goodOptions, orphanOptions++);
+        System.out.printf("#QuestionOptions: %5d good, %4d questionless\n", goodOptions, orphanOptions);
+        System.out.printf("#Ancestor Problems: %4d\n", ancestorProblems);
 
+    }
+
+    private void processSurveyGroups(DatastoreService ds) {
+
+        System.out.println("#Processing Survey Groups");
+
+        final Query group_q = new Query("SurveyGroup");
+        final PreparedQuery group_pq = ds.prepare(group_q);
+
+        for (Entity g : group_pq.asIterable(FetchOptions.Builder.withChunkSize(500))) {
+
+            Long surveyGroupId = g.getKey().getId();
+            Long parentId = (Long)g.getProperty("parentId");
+            String surveyGroupName = (String) g.getProperty("name");
+            List<Long> ancestorIds = (List<Long>) g.getProperty("ancestorIds");
+            if (parentId == null) {
+                System.out.printf("#ERR survey group %d '%s' is not in a survey group\n",
+                        surveyGroupId, surveyGroupName);
+                orphanSurveyGroups++;
+            } else {
+                surveyGroupNames.put(surveyGroupId, surveyGroupName); //ok to have surveys in
+            }
+            if (ancestorIds == null) {
+                System.out.printf("#WARN survey group %d '%s' has null ancestorIds\n",
+                        surveyGroupId, surveyGroupName);
+                ancestorProblems++;
+            } else if (ancestorIds.isEmpty()) {
+                System.out.printf("#WARN survey group %d '%s' has empty ancestorIds\n",
+                        surveyGroupId, surveyGroupName);
+                ancestorProblems++;
+            }
+        }
+    }
+
+    private void processSurveys(DatastoreService ds) {
+
+        System.out.println("#Processing Surveys");
+
+        final Query survey_q = new Query("Survey");
+        final PreparedQuery survey_pq = ds.prepare(survey_q);
+
+        for (Entity s : survey_pq.asIterable(FetchOptions.Builder.withChunkSize(500))) {
+
+            Long surveyId = s.getKey().getId();
+            String surveyName = (String) s.getProperty("name");
+            Long surveyGroup = (Long) s.getProperty("surveyGroupId");
+            List<Long> ancestorIds = (List<Long>) s.getProperty("ancestorIds");
+            if (surveyGroup == null) {
+                System.out.printf("#ERR survey %d '%s' is not in a survey group\n",
+                        surveyId, surveyName);
+                orphanSurveys++;
+            } else if (!surveyGroupNames.containsKey(surveyGroup)) {
+                System.out.printf("#ERR survey %d '%s' is in a nonexistent survey group\n",
+                        surveyId, surveyName);
+                orphanSurveys++;
+            } else {
+                surveys.put(surveyId,surveyName); //ok to have questions in
+            }
+            if (ancestorIds == null) {
+                System.out.printf("#WARN survey %d '%s' has null ancestorIds\n",
+                        surveyId, surveyName);
+                ancestorProblems++;
+            } else if (ancestorIds.isEmpty()) {
+                System.out.printf("#WARN survey %d '%s' has empty ancestorIds\n",
+                        surveyId, surveyName);
+                ancestorProblems++;
+            }
+
+        }
     }
 
     private void processGroups(DatastoreService ds) {
@@ -97,28 +172,6 @@ public class CheckSurveyStructure implements Process {
         }
     }
 
-    private void processSurveys(DatastoreService ds) {
-
-        System.out.println("#Processing Surveys");
-
-        final Query survey_q = new Query("Survey");
-        final PreparedQuery survey_pq = ds.prepare(survey_q);
-
-        for (Entity s : survey_pq.asIterable(FetchOptions.Builder.withChunkSize(500))) {
-
-            Long surveyId = s.getKey().getId();
-            String surveyName = (String) s.getProperty("name");
-            Long surveyGroup = (Long) s.getProperty("surveyGroupId");
-            if (surveyGroup == null) {
-                System.out.printf("#ERR survey %d '%s' is not in a survey group\n",
-                        surveyId, surveyName);
-                orphanSurveys++;
-	    } else {
-		surveys.put(surveyId,surveyName); //ok to have questions in
-	    }
-        }
-    }
-
     private void processQuestions(DatastoreService ds) {
         System.out.println("#Processing Questions");
 
@@ -135,7 +188,8 @@ public class CheckSurveyStructure implements Process {
             String questionText = (String) q.getProperty("text");
             Long questionGroupSurvey = (Long) qgToSurvey.get(questionGroup);
 
-            if (questionGroup == null || questionGroupSurvey == null) { // in no group or a nonexistent group; hopelessly lost
+            if (questionGroup == null || questionGroupSurvey == null) {
+                // in no group, or in a nonexistent group; hopelessly lost
                 System.out.printf("#ERR: Question %d '%s',survey %d, group %d\n",
                         questionId, questionText, questionSurvey, questionGroup);
                 orphanQuestions++;
@@ -145,11 +199,11 @@ public class CheckSurveyStructure implements Process {
                     questionsToKill.add(q.getKey());
                 }
             } else { // check for wrong survey/qg
-                qToSurvey.put(questionId, questionSurvey); //ok parent for options
-                if (!questionSurvey.equals(questionGroupSurvey)) {
+                qToSurvey.put(questionId, questionSurvey); //for now, ok parent for options
+                if (questionSurvey == null || (!questionSurvey.equals(questionGroupSurvey))) {
                     System.out.printf("#ERR: Question %d '%s' in survey %d, but group %d is in survey %d\n",
                             questionId, questionText, questionSurvey, questionGroup, questionGroupSurvey);
-                    if (fixSurveyPointers){
+                    if (fixSurveyPointers) {
                         System.out.println(q.toString());//for posterity
                         q.setProperty("surveyId", questionGroupSurvey);
                         questionsToFix.add(q);
