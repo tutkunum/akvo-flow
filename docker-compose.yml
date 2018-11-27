@@ -8,6 +8,7 @@ services:
     ports:
      - 8888:8888
      - 5005:5005
+     - 8080:8080
   fake-flow-services:
     image: solsson/http-echo
     network_mode: service:mainnetwork
@@ -27,3 +28,6 @@ services:
      - .:/app/src/:delegated
      - ~/.m2:/home/akvo/.m2:delegated
      - ~/.m2:/root/.m2:delegated
+  keycloak:
+    image: akvo/akvo-keycloak-dev:20181015.be5740a
+    network_mode: service:mainnetwork

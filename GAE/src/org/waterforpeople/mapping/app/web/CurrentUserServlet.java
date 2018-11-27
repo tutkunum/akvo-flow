@@ -48,7 +48,8 @@ import com.gallatinsystems.user.domain.Permission;
 import com.gallatinsystems.user.domain.User;
 import com.gallatinsystems.user.domain.UserAuthorization;
 import com.gallatinsystems.user.domain.UserRole;
-import com.google.appengine.api.users.UserServiceFactory;
+import org.keycloak.KeycloakSecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class CurrentUserServlet extends HttpServlet {
 
@@ -102,13 +103,16 @@ public class CurrentUserServlet extends HttpServlet {
     }
 
     public static User getCurrentUser() {
-        final com.google.appengine.api.users.User currentGoogleUser = UserServiceFactory
-                .getUserService().getCurrentUser();
-        if (currentGoogleUser == null) {
+
+        if (SecurityContextHolder.getContext() == null
+                && SecurityContextHolder.getContext().getAuthentication() == null ) {
             return null;
         }
 
-        final String currentUserEmail = currentGoogleUser.getEmail().toLowerCase();
+        final KeycloakSecurityContext credentials = (KeycloakSecurityContext) SecurityContextHolder.getContext()
+                .getAuthentication().getCredentials();
+
+        final String currentUserEmail = credentials.getToken().getEmail().toLowerCase();
         final UserDao uDao = new UserDao();
         return uDao.findUserByEmail(currentUserEmail);
     }

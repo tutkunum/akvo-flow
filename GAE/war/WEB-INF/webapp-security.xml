@@ -15,24 +15,9 @@
     <http pattern="/publicmap/css/**" security="none" />
     <http pattern="/publicmap/js/**" security="none" />
 
-	<http pattern="/api/v1/**" use-expressions="true" entry-point-ref="apiEntryPoint" authentication-manager-ref="apiAuthenticationManager" >
-
-		<intercept-url pattern="/api/v1/survey_groups/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/surveys/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/question_groups/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/questions/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/question_answers" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/survey_assignments/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/surveyed_locales/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/survey_instances/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/device_groups/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/api/v1/devices/**" method="GET" access="hasRole('USER')"/>
-		<intercept-url pattern="/**" access="denyAll"/>
-		<custom-filter position="PRE_AUTH_FILTER" ref="apiFilter"/>
-	</http>
-
-    <http use-expressions="true" entry-point-ref="gaeEntryPoint" authentication-manager-ref="authenticationManager"
-        access-decision-manager-ref="accessDecisionManager">
+    <http use-expressions="true" entry-point-ref="keycloakAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager">
+        <custom-filter ref="keycloakPreAuthActionsFilter" before="LOGOUT_FILTER" />
+        <custom-filter ref="keycloakAuthenticationProcessingFilter" before="FORM_LOGIN_FILTER" />
         <intercept-url pattern="/remote_api**" access="permitAll"/>
         <intercept-url pattern="/admin/logout.html" access="permitAll"/>
         <intercept-url pattern="/rest/placemark**" method="GET" access="permitAll"/>
@@ -46,8 +31,7 @@
         <intercept-url pattern="/rest/**" access="hasRole('USER')"/>
         <intercept-url pattern="/admin/**" access="hasRole('USER')"/>
         <intercept-url pattern="/**" access="permitAll"/>
-        <logout logout-success-url="/" delete-cookies="JSESSIONID"/>
-		<custom-filter position="PRE_AUTH_FILTER" ref="gaeFilter"/>
+        <custom-filter ref="logoutFilter" position="LOGOUT_FILTER" />
     </http>
 
     <b:bean id="accessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
@@ -59,21 +43,7 @@
 		</b:property>
 	</b:bean>
 
-	<!-- API Authentication -->
-
-	<b:bean id="apiEntryPoint" class="org.waterforpeople.mapping.app.web.rest.security.ApiAuthenticationEntryPoint"/>
-
-	<b:bean id="apiFilter" class="org.waterforpeople.mapping.app.web.rest.security.ApiAuthenticationFilter">
-		<b:property name="authenticationManager" ref="apiAuthenticationManager"></b:property>
-	</b:bean>
-
-	<authentication-manager id="apiAuthenticationManager">
-		<authentication-provider ref="apiAuthenticationProvider"/>
-	</authentication-manager>
-
-	<b:bean id="apiAuthenticationProvider" class="org.waterforpeople.mapping.app.web.rest.security.ApiAuthenticationProvider"/>
-
-	<!-- GAE Authentication -->
+	<!-- GAE Authentication
 
     <b:bean id="gaeEntryPoint" class="org.waterforpeople.mapping.app.web.rest.security.GoogleAccountsAuthenticationEntryPoint" />
 
@@ -95,5 +65,43 @@
     </authentication-manager>
 
     <b:bean id="gaeAuthenticationProvider" class="org.waterforpeople.mapping.app.web.rest.security.GoogleAccountsAuthenticationProvider" />
+-->
 
+    <!-- Keycloak -->
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider ref="keycloakAuthenticationProvider" />
+    </authentication-manager>
+
+    <b:bean id="adapterDeploymentContext" class="org.keycloak.adapters.springsecurity.AdapterDeploymentContextFactoryBean">
+        <b:constructor-arg value="/WEB-INF/keycloak.json" />
+    </b:bean>
+
+    <b:bean id="keycloakAuthenticationEntryPoint" class="org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationEntryPoint">
+        <b:constructor-arg name="adapterDeploymentContext" ref="adapterDeploymentContext" />
+    </b:bean>
+    <b:bean id="keycloakAuthenticationProvider" class="org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider" />
+    <b:bean id="keycloakPreAuthActionsFilter" class="org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter"/>
+    <b:bean id="keycloakAuthenticationProcessingFilter" class="org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcessingFilter">
+        <b:constructor-arg name="authenticationManager" ref="authenticationManager" />
+    </b:bean>
+
+    <b:bean id="keycloakLogoutHandler" class="org.keycloak.adapters.springsecurity.authentication.KeycloakLogoutHandler">
+        <b:constructor-arg ref="adapterDeploymentContext" />
+    </b:bean>
+
+    <b:bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
+        <b:constructor-arg name="logoutSuccessUrl" value="/" />
+        <b:constructor-arg name="handlers">
+            <b:list>
+                <b:ref bean="keycloakLogoutHandler" />
+                <b:bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler" />
+            </b:list>
+        </b:constructor-arg>
+        <b:property name="logoutRequestMatcher">
+            <b:bean class="org.springframework.security.web.util.matcher.AntPathRequestMatcher">
+                <b:constructor-arg name="pattern" value="/sso/logout**" />
+                <b:constructor-arg name="httpMethod" value="GET" />
+            </b:bean>
+        </b:property>
+    </b:bean>
 </b:beans>

@@ -195,6 +195,11 @@
         <artifactId>commons-lang</artifactId>
         <version>2.4</version>
     </dependency>
+    <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-spring-security-adapter</artifactId>
+        <version>3.4.3.Final</version>
+    </dependency>
 
     <!-- Will this work in place of version 1.0.13? -->
     <dependency>

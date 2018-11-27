@@ -316,7 +316,7 @@ public class BaseDAO<T extends BaseDomain> {
 
         UserDao userDAO = new UserDao();
         User user = userDAO.getByKey(userId);
-        if (user.isSuperAdmin()) {
+        if (user != null && user.isSuperAdmin()) {
             return allObjectsList;
         }
 
@@ -372,7 +372,14 @@ public class BaseDAO<T extends BaseDomain> {
     public <E extends BaseDomain> List<E> filterByUserAuthorizationObjectId(List<E> allObjectsList) {
         final Authentication authentication = SecurityContextHolder.getContext()
                 .getAuthentication();
-        final Long userId = (Long) authentication.getCredentials();
+        Long userId = -1L;
+        Object credentials = authentication.getCredentials();
+        if (credentials instanceof Long) {
+            userId = (Long) credentials;
+        } else {
+            log.warning("Unable to determine User id, using default value: -1");
+        }
+
         return filterByUserAuthorizationObjectId(allObjectsList, userId);
     }
 
