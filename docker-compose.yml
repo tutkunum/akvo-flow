@@ -29,5 +29,5 @@ services:
      - ~/.m2:/home/akvo/.m2:delegated
      - ~/.m2:/root/.m2:delegated
   keycloak:
-    image: akvo/akvo-keycloak-dev:20181015.be5740a
+    image: akvo/akvo-keycloak-dev:20181127.d1a036b
     network_mode: service:mainnetwork
