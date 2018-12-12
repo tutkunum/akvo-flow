@@ -318,6 +318,7 @@
                       <include>Env.vm</include>
                       <include>favicon.ico</include>
                       <include>robots.txt</include>
+                      <include>/WEB-INF/keycloak.json</include>
                     </includes>
                     <excludes>
                       <exclude>/WEB-INF/appengine-generated/**</exclude>

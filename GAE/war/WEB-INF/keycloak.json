@@ -1,0 +1,11 @@
+{
+  "realm": "akvo",
+  "auth-server-url": "http://localhost:8080/auth",
+  "ssl-required": "external",
+  "resource": "akvo-flow",
+  "credentials": {
+    "secret": "f6f88c4d-5b3f-4b70-9f3e-1abd0989d11d"
+  },
+  "use-resource-role-mappings": true,
+  "confidential-port": 0
+}

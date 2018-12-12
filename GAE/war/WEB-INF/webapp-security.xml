@@ -43,30 +43,6 @@
 		</b:property>
 	</b:bean>
 
-	<!-- GAE Authentication
-
-    <b:bean id="gaeEntryPoint" class="org.waterforpeople.mapping.app.web.rest.security.GoogleAccountsAuthenticationEntryPoint" />
-
-    <b:bean id="gaeFilter" class="org.waterforpeople.mapping.app.web.rest.security.GaeAuthenticationFilter">
-        <b:property name="authenticationManager" ref="authenticationManager"/>
-        <b:property name="failureHandler">
-            <b:bean class="org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler">
-                <b:property name="exceptionMappings">
-                    <b:map>
-                        <b:entry key="org.springframework.security.authentication.DisabledException" value="/disabled.htm" />
-                    </b:map>
-                </b:property>
-            </b:bean>
-        </b:property>
-    </b:bean>
-
-    <authentication-manager id="authenticationManager">
-        <authentication-provider ref="gaeAuthenticationProvider"/>
-    </authentication-manager>
-
-    <b:bean id="gaeAuthenticationProvider" class="org.waterforpeople.mapping.app.web.rest.security.GoogleAccountsAuthenticationProvider" />
--->
-
     <!-- Keycloak -->
     <authentication-manager alias="authenticationManager">
         <authentication-provider ref="keycloakAuthenticationProvider" />
@@ -79,7 +55,7 @@
     <b:bean id="keycloakAuthenticationEntryPoint" class="org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationEntryPoint">
         <b:constructor-arg name="adapterDeploymentContext" ref="adapterDeploymentContext" />
     </b:bean>
-    <b:bean id="keycloakAuthenticationProvider" class="org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationProvider" />
+    <b:bean id="keycloakAuthenticationProvider" class="org.waterforpeople.mapping.app.web.rest.security.KeycloakFlowAuthenticationProvider" />
     <b:bean id="keycloakPreAuthActionsFilter" class="org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter"/>
     <b:bean id="keycloakAuthenticationProcessingFilter" class="org.keycloak.adapters.springsecurity.filter.KeycloakAuthenticationProcessingFilter">
         <b:constructor-arg name="authenticationManager" ref="authenticationManager" />

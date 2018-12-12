@@ -109,12 +109,11 @@ public class CurrentUserServlet extends HttpServlet {
             return null;
         }
 
-        final KeycloakSecurityContext credentials = (KeycloakSecurityContext) SecurityContextHolder.getContext()
+        final Long userId = (Long) SecurityContextHolder.getContext()
                 .getAuthentication().getCredentials();
 
-        final String currentUserEmail = credentials.getToken().getEmail().toLowerCase();
         final UserDao uDao = new UserDao();
-        return uDao.findUserByEmail(currentUserEmail);
+        return uDao.getByKey(userId);
     }
 
     public static Long getCurrentUserId() {
