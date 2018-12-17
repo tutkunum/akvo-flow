@@ -19,7 +19,7 @@
         <custom-filter ref="keycloakPreAuthActionsFilter" before="LOGOUT_FILTER" />
         <custom-filter ref="keycloakAuthenticationProcessingFilter" before="FORM_LOGIN_FILTER" />
         <intercept-url pattern="/remote_api**" access="permitAll"/>
-        <intercept-url pattern="/admin/logout.html" access="permitAll"/>
+        <intercept-url pattern="/sso/logout**" access="permitAll"/>
         <intercept-url pattern="/rest/placemark**" method="GET" access="permitAll"/>
         <intercept-url pattern="/_ah/**" access="permitAll"/>
         <intercept-url pattern="/webapp/testharness**" access="hasRole('SUPER_ADMIN')"/>
