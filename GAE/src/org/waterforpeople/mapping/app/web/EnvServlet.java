@@ -36,6 +36,8 @@ import org.akvo.flow.locale.UIStrings;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.waterforpeople.mapping.app.web.rest.security.AppRole;
 
 import com.gallatinsystems.common.util.PropertyUtil;
@@ -190,10 +192,11 @@ public class EnvServlet extends HttpServlet {
      * @param props
      */
     private void addLocale(Map<String, String> props) {
-        final com.google.appengine.api.users.User currentGoogleUser = UserServiceFactory
-                .getUserService().getCurrentUser();
-        if (currentGoogleUser != null && currentGoogleUser.getEmail() != null) {
-            final User currentUser = new UserDao().findUserByEmail(currentGoogleUser.getEmail());
+        final Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+
+        if (authentication != null && authentication.getCredentials() instanceof  Long) {
+            final User currentUser = new UserDao().getByKey((Long) authentication.getCredentials());
             final String locale = currentUser.getLanguage();
             if (locale != null) {
                 props.put("locale", locale);

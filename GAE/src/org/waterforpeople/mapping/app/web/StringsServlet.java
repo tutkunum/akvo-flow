@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2013-2016 Stichting Akvo (Akvo Foundation)
+ *  Copyright (C) 2013-2018 Stichting Akvo (Akvo Foundation)
  *
  *  This file is part of Akvo FLOW.
  *
@@ -29,7 +29,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.gallatinsystems.user.dao.UserDao;
 import com.gallatinsystems.user.domain.User;
-import com.google.appengine.api.users.UserServiceFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 
 /**
  * Change the locale setting of the current user to a requested one.
@@ -53,14 +55,14 @@ public class StringsServlet extends HttpServlet {
         }
 
         // reset user locale
-        final com.google.appengine.api.users.User currentGoogleUser = UserServiceFactory
-                .getUserService().getCurrentUser();
-        if (currentGoogleUser == null || currentGoogleUser.getEmail() == null) {
+        final Authentication authentication = SecurityContextHolder.getContext()
+                .getAuthentication();
+        if (authentication == null) {
             return;
         }
 
         final UserDao uDao = new UserDao();
-        final User currentUser = uDao.findUserByEmail(currentGoogleUser.getEmail());
+        final User currentUser = uDao.getByKey((Long) authentication.getCredentials());
         currentUser.setLanguage(locale);
         uDao.save(currentUser);
         log.info("Changed locale setting for user to '" + locale.toUpperCase() + "'");
