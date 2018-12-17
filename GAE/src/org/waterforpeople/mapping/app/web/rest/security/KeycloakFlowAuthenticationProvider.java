@@ -38,14 +38,15 @@ public class KeycloakFlowAuthenticationProvider extends KeycloakAuthenticationPr
         UserDao userDao = new UserDao();
         String email = token.getAccount().getKeycloakSecurityContext().getIdToken().getEmail();
         User user = userDao.findUserByEmail(email);
+        Set<AppRole> roles = EnumSet.noneOf(AppRole.class);
 
         if (user == null) {
             log.log(Level.WARNING, "User entity with email <" + email + "> not found in Datastore");
-            return null;
+            roles.add(AppRole.NEW_USER);
+            return new KeycloakFlowAuthenticationToken(token.getAccount(), token.isInteractive(), roles , -1L);
         }
 
         int authority = getAuthorityLevel(user);
-        Set<AppRole> roles = EnumSet.noneOf(AppRole.class);
 
         if (authority == AppRole.NEW_USER.getLevel()) {
             roles.add(AppRole.NEW_USER);
