@@ -197,9 +197,16 @@
     </dependency>
     <dependency>
         <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-spring-security-adapter</artifactId>
+        <artifactId>keycloak-spring-security-adapter-akvo</artifactId>
         <version>3.4.3.Final</version>
+
+
     </dependency>
+     <!--<dependency>-->
+        <!--<groupId>com.auth0</groupId>-->
+        <!--<artifactId>mvc-auth-commons</artifactId>-->
+        <!--<version>1.0.3</version>-->
+     <!--</dependency>-->
 
     <!-- Will this work in place of version 1.0.13? -->
     <dependency>
@@ -319,6 +326,8 @@
                       <include>favicon.ico</include>
                       <include>robots.txt</include>
                       <include>/WEB-INF/keycloak.json</include>
+                      <include>/WEB-INF/auth0.json</include>
+                      <include>/WEB-INF/log4j.properties</include>
                     </includes>
                     <excludes>
                       <exclude>/WEB-INF/appengine-generated/**</exclude>

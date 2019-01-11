@@ -14,6 +14,8 @@
     <http pattern="/publicmap/images/**" security="none" />
     <http pattern="/publicmap/css/**" security="none" />
     <http pattern="/publicmap/js/**" security="none" />
+    <http pattern="/webapp/testharness**" security="none" />
+
 
     <http use-expressions="true" entry-point-ref="keycloakAuthenticationEntryPoint" access-decision-manager-ref="accessDecisionManager">
         <custom-filter ref="keycloakPreAuthActionsFilter" before="LOGOUT_FILTER" />
@@ -22,7 +24,6 @@
         <intercept-url pattern="/sso/logout**" access="permitAll"/>
         <intercept-url pattern="/rest/placemark**" method="GET" access="permitAll"/>
         <intercept-url pattern="/_ah/**" access="permitAll"/>
-        <intercept-url pattern="/webapp/testharness**" access="hasRole('SUPER_ADMIN')"/>
         <intercept-url pattern="/dashboard.html" access="hasRole('SUPER_ADMIN')"/>
         <intercept-url pattern="/rest/reports/**" method="PUT" access="permitAll"/>
         <intercept-url pattern="/rest/users" access="hasRole('USER')"/>
@@ -48,12 +49,29 @@
         <authentication-provider ref="keycloakAuthenticationProvider" />
     </authentication-manager>
 
-    <b:bean id="adapterDeploymentContext" class="org.keycloak.adapters.springsecurity.AdapterDeploymentContextFactoryBean">
-        <b:constructor-arg value="/WEB-INF/keycloak.json" />
+    <b:bean id="keycloakDeployment" class="org.waterforpeople.mapping.app.web.rest.security.WriteableKeycloakDeployment">
+        <b:constructor-arg value="/WEB-INF/auth0.json"/>
+        <b:constructor-arg value="https://dantestakvo.eu.auth0.com/oauth/token"/>
+        <b:constructor-arg value="https://dantestakvo.eu.auth0.com/authorize?audience=https://foo.akvo.org"/>
+        <b:constructor-arg value="https://dantestakvo.eu.auth0.com/"/>
+        <b:constructor-arg value="https://dantestakvo.eu.auth0.com/.well-known/jwks.json"/>
+    </b:bean>
+<!---->
+    <!--<b:bean id="keycloakDeployment" class="org.waterforpeople.mapping.app.web.rest.security.WriteableKeycloakDeployment">-->
+        <!--<b:constructor-arg value="/WEB-INF/keycloak.json"/>-->
+        <!--<b:constructor-arg value="http://localhost:8080/auth/realms/akvo/protocol/openid-connect/token"/>-->
+        <!--<b:constructor-arg value="http://localhost:8080/auth/realms/akvo/protocol/openid-connect/auth"/>-->
+        <!--<b:constructor-arg value="http://localhost:8080/auth/realms/akvo"/>-->
+        <!--<b:constructor-arg value="http://localhost:8080/auth/realms/akvo/protocol/openid-connect/certs"/>-->
+    <!--</b:bean>-->
+
+    <b:bean id="adapterDeploymentContext" class="org.keycloak.adapters.AdapterDeploymentContext">
+        <b:constructor-arg ref="keycloakDeployment"/>
     </b:bean>
 
     <b:bean id="keycloakAuthenticationEntryPoint" class="org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationEntryPoint">
         <b:constructor-arg name="adapterDeploymentContext" ref="adapterDeploymentContext" />
+        <b:property name="loginUri" value="/sso/login?scope=email"/>
     </b:bean>
     <b:bean id="keycloakAuthenticationProvider" class="org.waterforpeople.mapping.app.web.rest.security.KeycloakFlowAuthenticationProvider" />
     <b:bean id="keycloakPreAuthActionsFilter" class="org.keycloak.adapters.springsecurity.filter.KeycloakPreAuthActionsFilter"/>

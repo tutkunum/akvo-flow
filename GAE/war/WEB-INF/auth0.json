@@ -1,0 +1,11 @@
+{
+  "realm": "dantestakvo.eu.auth0.com",
+  "auth-server-url": "https://dantestakvo.eu.auth0.com/authorize",
+  "ssl-required": "external",
+  "resource": "DhFdUkPQPwosdWatLsTYO3e85Tn9z7RE",
+  "credentials": {
+    "secret": "XXXXXXXXXXXXXXXXXX"
+  },
+  "use-resource-role-mappings": true,
+  "confidential-port": 0
+}
