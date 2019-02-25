@@ -4,5 +4,6 @@ require('akvo-flow/flowenv');
 require('akvo-flow/controllers/controllers-public');
 require('akvo-flow/views/views-public');
 require('akvo-flow/router/router-public');
+require('akvo-flow/components/index');
 
 FLOW.initialize();
