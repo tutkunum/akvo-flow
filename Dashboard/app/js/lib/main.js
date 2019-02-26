@@ -4,6 +4,6 @@ require('akvo-flow/flowenv');
 require('akvo-flow/controllers/controllers');
 require('akvo-flow/views/views');
 require('akvo-flow/router/router');
-require('akvo-flow/components/index');
+// require('akvo-flow/components/index');
 
 FLOW.initialize();

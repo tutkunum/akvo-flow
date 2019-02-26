@@ -2,7 +2,7 @@ var propTypes = {
   name: React.PropTypes.string.isRequired,
 };
 
-export default class HelloWorld extends React.Component {
+class HelloWorld extends React.Component {
   // constructor( props ){
   //   super( props );
   //   this.state = { name: this.props.name || 'World' };
@@ -26,3 +26,5 @@ export default class HelloWorld extends React.Component {
 }
 
 HelloWorld.propTypes = propTypes;
+
+FLOW.component.HelloWorld = HelloWorld;
