@@ -1,21 +1,17 @@
 FLOW.ReactComponentView = Ember.View.extend({
 
-  // layout: '',
-  tagName: 'div',
   template: Ember.Handlebars.compile(''),
 
   reactRender(reactComponent) {
-    console.log(this);
-    ReactDOM.render(reactComponent, this.element);
+    ReactDOM.render(reactComponent, this.get('element'));
   },
 
   unmountReactElement() {
-    ReactDOM.unmountComponentAtNode(this.element);
+    ReactDOM.unmountComponentAtNode(this.get('element'));
   },
 
   willDestroyElement() {
     this._super();
     this.unmountReactElement();
   }
-
 });

@@ -3,12 +3,10 @@ APPNAME = 'akvo-flow'
 require 'json'
 require 'rake-pipeline-web-filters'
 
-
 WebFilters = Rake::Pipeline::Web::Filters
 
   class LoaderFilter < WebFilters::MinispadeFilter
     def generate_output(inputs, output)
-      log = Logger.new(STDOUT)
       $hasntLogged = 1
       inputs.each do |input|
         code = input.read 
